@@ -1,0 +1,321 @@
+package com.pic;
+
+import android.app.*;
+import android.os.*;
+import android.widget.*;
+import android.view.*;
+import java.io.*;
+import android.content.*;
+import android.net.*;
+import android.graphics.*;
+import android.provider.*;
+import android.database.*;
+import java.util.*;
+import android.content.pm.*;
+import android.media.*;
+
+public class MainActivity extends Activity 
+{
+    //图片缓存目录
+    File appDir = new File(Environment.getExternalStorageDirectory(), "DCIM/图片缓存");
+    String filePath;//传进来的地址
+    SharedPreferences sharedPreferences;
+	private ProgressDialog dialog;//加载中
+    @Override
+    protected void onCreate(Bundle savedInstanceState) 
+    {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+        sharedPreferences= getSharedPreferences("test",Activity.MODE_PRIVATE); //同样，在读取SharedPreferences数据前要实例化出一个SharedPreferences对象 
+		dialog = new ProgressDialog(this);
+		dialog.setTitle("提示");
+		dialog.setMessage("正在排版，请稍后...");
+		dialog.setCancelable(false);
+        delete(appDir);
+        Intent intent = getIntent();
+        String action = intent.getAction();
+        String type = intent.getType();
+        if (Intent.ACTION_SEND.equals(action) && type != null) {if (type.startsWith("image/")) {handleSendImage(intent);}}  else {}
+    }
+    void handleSendImage(Intent intent) 
+    {
+        Uri imageUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+        if (imageUri != null) {
+            filePath= uritodata(this,imageUri);//Uri链接转换data链接
+            File mfile=new File(filePath);//获取图片文件
+            if (mfile.exists()) {
+                log("图片加载完成，等待排版");
+            }else{log("内存卡读取失败");}
+        }
+    }
+	
+    public void click_1(View view)
+    {
+		dialog.show();
+        paiban1 thread1 = new paiban1();
+        thread1.start();
+    }
+    public void click_2(View view)
+    {
+		dialog.show();
+        paiban2 thread1 = new paiban2();
+        thread1.start();
+    }
+    public void click_3(View view)
+    {
+		dialog.show();
+        paiban3 thread1 = new paiban3();
+        thread1.start();
+    }
+    public void click_6(View view)
+    {
+		dialog.show();
+        paiban6 thread1 = new paiban6();
+        thread1.start();
+    }
+    void log(String debug){Toast.makeText(getApplicationContext(),debug,Toast.LENGTH_SHORT).show();}//浮动提示
+    //Uri转地址
+    private static String uritodata(Context context, Uri uri) {
+        String filePath = null;
+        if (DocumentsContract.isDocumentUri(context, uri)) {
+            // 如果是document类型的 uri, 则通过document id来进行处理
+            String documentId = DocumentsContract.getDocumentId(uri);
+            if (isMediaDocument(uri)) { // MediaProvider
+                // 使用':'分割
+                String id = documentId.split(":")[1];
+
+                String selection = MediaStore.Images.Media._ID + "=?";
+                String[] selectionArgs = {id};
+                filePath = getDataColumn(context, MediaStore.Images.Media.EXTERNAL_CONTENT_URI, selection, selectionArgs);
+            } else if (isDownloadsDocument(uri)) { // DownloadsProvider
+                Uri contentUri = ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"), Long.valueOf(documentId));
+                filePath = getDataColumn(context, contentUri, null, null);
+            }
+        } else if ("content".equalsIgnoreCase(uri.getScheme())){
+            // 如果是 content 类型的 Uri
+            filePath = getDataColumn(context, uri, null, null);
+        } else if ("file".equals(uri.getScheme())) {
+            // 如果是 file 类型的 Uri,直接获取图片对应的路径
+            filePath = uri.getPath();
+        }
+        return filePath;
+    }
+
+    /**
+     * 获取数据库表中的 _data 列，即返回Uri对应的文件路径
+     * @return
+     */
+    private static String getDataColumn(Context context, Uri uri, String selection, String[] selectionArgs) {
+        String path = null;
+
+        String[] projection = new String[]{MediaStore.Images.Media.DATA};
+        Cursor cursor = null;
+        try {
+            cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                int columnIndex = cursor.getColumnIndexOrThrow(projection[0]);
+                path = cursor.getString(columnIndex);
+            }
+        } catch (Exception e) {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+        return path;
+    }
+    private static boolean isMediaDocument(Uri uri) {
+        return "com.android.providers.media.documents".equals(uri.getAuthority());
+    }
+    private static boolean isDownloadsDocument(Uri uri) {
+        return "com.android.providers.downloads.documents".equals(uri.getAuthority());
+    }
+    //分享
+    private void initShareIntent(String type,File newimage) {
+        boolean found = false;
+        Intent share = new Intent(android.content.Intent.ACTION_SEND);
+        share.setType("image/jpeg");
+        // gets the list of intents that can be loaded.
+        List<ResolveInfo> resInfo = getPackageManager().queryIntentActivities(share, 0);
+        if (!resInfo.isEmpty()){
+            for (ResolveInfo info : resInfo) {
+                if (info.activityInfo.packageName.toLowerCase().contains(type) ||
+                    info.activityInfo.name.toLowerCase().contains(type) ) {
+                    //share.putExtra(Intent.EXTRA_SUBJECT,  "subject");
+                    //share.putExtra(Intent.EXTRA_TEXT,     "your text");
+                    share.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(newimage) ); // Optional, just if you wanna share an image.
+                    share.setPackage(info.activityInfo.packageName);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                return;
+            startActivity(Intent.createChooser(share, "Select"));
+        }
+    }
+//获取300dpi的缩略图降低运算压力
+    private Bitmap getImageThumbnail(String imagePath, int width, int height) { 
+        Bitmap bitmap = null; 
+        BitmapFactory.Options options = new BitmapFactory.Options(); 
+        options.inJustDecodeBounds = true; 
+        // 获取这个图片的宽和高，注意此处的bitmap为null 
+        bitmap = BitmapFactory.decodeFile(imagePath, options); 
+        options.inJustDecodeBounds = false; // 设为 false 
+        // 计算缩放比 
+        int h = options.outHeight; 
+        int w = options.outWidth; 
+        int beWidth = w / width; 
+        int beHeight = h / height; 
+        int be = 1; 
+        if (beWidth < beHeight) { 
+            be = beWidth; 
+        } else { 
+            be = beHeight; 
+        } 
+        if (be <= 0) { 
+            be = 1; 
+        } 
+        options.inSampleSize = be; 
+        // 重新读入图片，读取缩放后的bitmap，注意这次要把options.inJustDecodeBounds 设为 false 
+        bitmap = BitmapFactory.decodeFile(imagePath, options); 
+        // 利用ThumbnailUtils来创建缩略图，这里要指定要缩放哪个Bitmap对象 
+        bitmap = ThumbnailUtils.extractThumbnail(bitmap, width, height, 
+                                                 ThumbnailUtils.OPTIONS_RECYCLE_INPUT); 
+        return bitmap; 
+    }
+    //保存排好版的图片
+    public void saveImageToGallery(/*Context context, */Bitmap bmp) {
+        // 首先保存图片
+        if (!appDir.exists()) {
+            appDir.mkdir();
+        }
+        String fileName = System.currentTimeMillis() + ".jpg";
+        File file = new File(appDir, fileName);
+        // 创建一个位于SD卡上的文件 
+        FileOutputStream fileOutStream=null; 
+        try { 
+            fileOutStream=new FileOutputStream(file); 
+            //把位图输出到指定的文件中 
+            bmp.compress(Bitmap.CompressFormat.PNG, 100, fileOutStream); 
+            fileOutStream.close(); 
+        } catch (IOException io) { 
+            io.printStackTrace(); 
+        } 
+        /*
+         // 其次把文件插入到系统图库
+         try {
+         MediaStore.Images.Media.insertImage(context.getContentResolver(),
+         file.getAbsolutePath(), fileName, null);
+         } catch (FileNotFoundException e) {
+         e.printStackTrace();
+         }
+         // 最后通知图库更新
+         context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse("file://" + fileName)));
+         */
+        initShareIntent(sharedPreferences.getString("Bao_Name", "epson.print"),file);//自动发送打印机
+    }/*
+    @Override
+    protected void onPause()//退出软件即关闭
+    {
+        super.onPause();
+        System.exit(0);
+    }*/
+    void delete(File imagedata)//清除图片缓存
+    {
+        try
+        {
+            File oldFile[] = imagedata.listFiles();
+            for (int i = 0; i < oldFile.length; i++)
+            {
+                oldFile[i].delete();
+            }
+            //imagedata.delete();
+        }
+        catch(Exception e)
+        {
+            log("清空缓存文件夹失败!");
+        }
+    }
+	class paiban6 extends Thread
+	{
+		@Override
+		public void run() 
+		{
+			Bitmap bm = getImageThumbnail(filePath,296,400);
+			int bian_ju_u =sharedPreferences.getInt("Bian_Ju_U",0); 
+			int bian_ju_l =sharedPreferences.getInt("Bian_Ju_L",0);
+			int bianjuL=10,bianjuU=5;
+			Bitmap bagimage=Bitmap.createBitmap(1181,1772,Bitmap.Config.ARGB_8888);
+			bagimage.eraseColor (Color.parseColor("#00000000"));
+
+			Canvas canvas = new Canvas(bagimage);
+			for(int i=1;i<4;i++){
+				canvas.drawBitmap(bm,bianjuL*i+(bm.getHeight()*(i-1))+bian_ju_l,bianjuU+bian_ju_u, null);  
+			}
+			for(int i=1;i<4;i++){
+				canvas.drawBitmap(bm,bianjuL*i+(bm.getHeight()*(i-1))+bian_ju_l,bianjuU*2+bm.getHeight()+bian_ju_u, null);  
+			}
+			canvas.save(Canvas.ALL_SAVE_FLAG);  
+			canvas.restore();  
+			saveImageToGallery(bagimage);//保存并分享
+			dialog.dismiss();// 隐藏对话框
+		}
+	}
+	class paiban3 extends Thread
+	{
+		@Override
+		public void run() 
+		{
+			Bitmap bm = getImageThumbnail(filePath,296,400);
+			int bian_ju_u =sharedPreferences.getInt("Bian_Ju_U",0); 
+			int bian_ju_l =sharedPreferences.getInt("Bian_Ju_L",0);
+			int bianjuL=10,bianjuU=5;
+			Bitmap bagimage=Bitmap.createBitmap(1181,1772,Bitmap.Config.ARGB_8888);
+			bagimage.eraseColor (Color.parseColor("#00000000"));
+			Canvas canvas = new Canvas(bagimage);
+			for(int i=1;i<4;i++){
+				canvas.drawBitmap(bm,bianjuL*i+(bm.getHeight()*(i-1))+bian_ju_l,bianjuU+bian_ju_u, null);  
+			}
+			canvas.save(Canvas.ALL_SAVE_FLAG);  
+			canvas.restore();
+			saveImageToGallery(bagimage);//保存并分享
+			dialog.dismiss();// 隐藏对话框
+		}
+	}
+	class paiban2 extends Thread
+	{
+		@Override
+		public void run() 
+		{
+			Bitmap bm = getImageThumbnail(filePath,1063,709);
+			int bianjuW=50,bianjuH=20;
+			Bitmap bagimage=Bitmap.createBitmap(1181,1772,Bitmap.Config.ARGB_8888);
+			bagimage.eraseColor (Color.parseColor("#00000000"));
+			Canvas canvas = new Canvas(bagimage);
+			canvas.drawBitmap(bm,bianjuW,bianjuH*3, null);  
+			canvas.drawBitmap(bm,bianjuW,bianjuH*4+bm.getHeight(), null);  
+			canvas.save(Canvas.ALL_SAVE_FLAG);  
+			canvas.restore();
+			saveImageToGallery(bagimage);//保存并分享
+			dialog.dismiss();// 隐藏对话框
+		}
+	}
+	class paiban1 extends Thread
+	{
+		@Override
+		public void run() 
+		{
+			Bitmap bm = getImageThumbnail(filePath,1063,709);
+			int bianjuW=50,bianjuH=20;
+			Bitmap bagimage=Bitmap.createBitmap(1181,1772,Bitmap.Config.ARGB_8888);
+			bagimage.eraseColor (Color.parseColor("#00000000"));
+			Canvas canvas = new Canvas(bagimage);
+			canvas.drawBitmap(bm,bianjuW,bianjuH*3, null);  
+			canvas.save(Canvas.ALL_SAVE_FLAG);  
+			canvas.restore();  
+			saveImageToGallery(bagimage);//保存并分享
+			dialog.dismiss();// 隐藏对话框
+		}
+	}
+}
+

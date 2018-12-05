@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+	android:orientation="vertical">
+
+	<TextView
+		android:layout_height="wrap_content"
+		android:layout_width="wrap_content"
+		android:text="这是一个设置界面，如果打印没问题请直接将图片分享至该软件。"/>
+
+	<LinearLayout
+		android:layout_height="wrap_content"
+		android:layout_width="fill_parent"
+		android:orientation="horizontal">
+
+		<TextView
+			android:layout_height="wrap_content"
+			android:layout_width="wrap_content"
+			android:text="打印软件包名："/>
+
+		<EditText
+			android:inputType="textUri"
+			android:layout_width="wrap_content"
+			android:ems="10"
+			android:layout_height="40dp"
+			android:id="@+id/da_yin_bao_ming"/>
+
+	</LinearLayout>
+
+	<LinearLayout
+		android:layout_height="wrap_content"
+		android:layout_width="fill_parent"
+		android:orientation="horizontal">
+
+		<TextView
+			android:layout_height="wrap_content"
+			android:layout_width="wrap_content"
+			android:text="一寸模板整体偏移上边距：(像素)"/>
+
+		<EditText
+			android:inputType="number"
+			android:layout_width="wrap_content"
+			android:ems="10"
+			android:layout_height="40dp"
+			android:id="@+id/yi_cun_u"/>
+
+	</LinearLayout>
+
+	<LinearLayout
+		android:layout_height="wrap_content"
+		android:layout_width="fill_parent"
+		android:orientation="horizontal">
+
+		<TextView
+			android:layout_height="wrap_content"
+			android:layout_width="wrap_content"
+			android:text="一寸模板整体偏移左边距：(像素)"/>
+
+		<EditText
+			android:inputType="number"
+			android:layout_width="wrap_content"
+			android:ems="10"
+			android:layout_height="40dp"
+			android:id="@+id/yi_cun_l"/>
+
+	</LinearLayout>
+
+	<LinearLayout
+		android:layout_height="wrap_content"
+		android:layout_width="fill_parent"
+		android:layout_weight="1"
+		android:orientation="horizontal">
+
+		<Button
+			android:layout_height="wrap_content"
+			android:layout_width="wrap_content"
+			android:text="提交设置"
+			android:onClick="set"/>
+
+		<View
+			android:layout_height="50dp"
+			android:layout_width="fill_parent"
+			android:layout_weight="1"/>
+
+		<Button
+			android:layout_height="wrap_content"
+			android:layout_width="wrap_content"
+			android:text="测试是否设置成功"
+			android:onClick="get"/>
+
+	</LinearLayout>
+
+</LinearLayout>
+
