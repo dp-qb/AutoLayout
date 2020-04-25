@@ -1,50 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
-	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
 	android:orientation="vertical">
-    
-	<Button
-		android:id="@+id/btn_1photo"
+
+	<TextView
+		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:layout_width="fill_parent"
-		android:layout_weight="1"
-		android:text="一张行驶证"
-		android:onClick="click_1"
-		android:textSize="30sp"
-        android:drawableLeft="@drawable/pic1"/>
+		android:text="这是一段说明"
+		android:id="@+id/text"/>
 
 	<Button
-		android:id="@+id/btn_2photo"
+		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:layout_width="fill_parent"
-		android:layout_weight="1"
-		android:text="两张行驶证"
-		android:onClick="click_2"
-		android:textSize="30sp"
-        android:drawableLeft="@drawable/pic2"/>
+		android:text="打开相册选择一张图片"
+		android:onClick="ce"/>
 
 	<Button
-		android:id="@+id/btn_3photo"
+		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:layout_width="fill_parent"
-		android:layout_weight="1"
-		android:text="三张一寸"
-		android:onClick="click_3"
-		android:textSize="30sp"
-        android:drawableLeft="@drawable/pic3"/>
+		android:text="把图片返回给请求(测试用)"
+		android:onClick="fh"/>
 
 	<Button
-		android:id="@+id/btn_6photo"
+		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
+		android:text="关闭当前界面(测试用)"
+		android:onClick="gb"/>
+
+	<ImageView
+		android:src="@android:drawable/ic_delete"
 		android:layout_width="fill_parent"
-		android:layout_weight="1"
-		android:text="六张一寸"
-		android:onClick="click_6"
-		android:textSize="30sp"
-        android:drawableLeft="@drawable/pic6"/>
+		android:layout_height="wrap_content"
+		android:id="@+id/imgView"/>
 
 </LinearLayout>
 
