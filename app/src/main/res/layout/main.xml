@@ -1,39 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="horizontal"
 	android:layout_width="match_parent"
-	android:layout_height="match_parent"
-	android:orientation="vertical">
+	android:layout_height="match_parent">
 
-	<TextView
+	<LinearLayout
+		android:orientation="vertical"
 		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:text="这是一段说明"
-		android:id="@+id/text"/>
+		android:layout_height="wrap_content">
 
-	<Button
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="Text"
+			android:id="@+id/text"/>
+
+		<Button
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="一张行驶证"
+			android:drawableLeft="@drawable/pic1"
+			android:onClick="click_1"/>
+
+		<Button
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="两张行驶证"
+			android:drawableLeft="@drawable/pic2"
+			android:onClick="click_2"/>
+
+		<Button
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="三张一寸"
+			android:drawableLeft="@drawable/pic3"
+			android:onClick="click_3"/>
+
+		<Button
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="六张一寸"
+			android:drawableLeft="@drawable/pic6"
+			android:onClick="click_6"/>
+
+		<Button
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="四张两寸"
+			android:drawableLeft="@drawable/pic4"
+			android:onClick="click_4"/>
+
+	</LinearLayout>
+
+	<LinearLayout
+		android:orientation="vertical"
 		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:text="打开相册选择一张图片"
-		android:onClick="ce"/>
+		android:layout_height="wrap_content">
 
-	<Button
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:text="把图片返回给请求(测试用)"
-		android:onClick="fh"/>
+		<ImageView
+			android:src="@android:drawable/ic_delete"
+			android:layout_width="450px"
+			android:layout_height="300px"
+			android:id="@+id/che"/>
 
-	<Button
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:text="关闭当前界面(测试用)"
-		android:onClick="gb"/>
+		<Button
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:drawableLeft="@drawable/but_90"
+			android:text="转90度"
+			android:onClick="zhuan"/>
 
-	<ImageView
-		android:src="@android:drawable/ic_delete"
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-		android:id="@+id/imgView"/>
+		<ImageView
+			android:src="@android:drawable/ic_delete"
+			android:layout_width="296px"
+			android:layout_height="400px"
+			android:id="@+id/ren"/>
+
+	</LinearLayout>
 
 </LinearLayout>
 

@@ -25,7 +25,7 @@
 			android:layout_width="wrap_content"
 			android:ems="10"
 			android:layout_height="40dp"
-			android:id="@+id/da_yin_bao_ming"/>
+			android:id="@+id/bao"/>
 
 	</LinearLayout>
 
@@ -37,14 +37,14 @@
 		<TextView
 			android:layout_height="wrap_content"
 			android:layout_width="wrap_content"
-			android:text="一寸模板整体偏移上边距：(像素)"/>
+			android:text="版高:"/>
 
 		<EditText
 			android:inputType="number"
 			android:layout_width="wrap_content"
 			android:ems="10"
 			android:layout_height="40dp"
-			android:id="@+id/yi_cun_u"/>
+			android:id="@+id/ban_h"/>
 
 	</LinearLayout>
 
@@ -56,14 +56,134 @@
 		<TextView
 			android:layout_height="wrap_content"
 			android:layout_width="wrap_content"
-			android:text="一寸模板整体偏移左边距：(像素)"/>
+			android:text="版宽:"/>
 
 		<EditText
 			android:inputType="number"
 			android:layout_width="wrap_content"
 			android:ems="10"
 			android:layout_height="40dp"
-			android:id="@+id/yi_cun_l"/>
+			android:id="@+id/ban_w"/>
+
+	</LinearLayout>
+
+	<LinearLayout
+		android:layout_height="wrap_content"
+		android:layout_width="fill_parent"
+		android:orientation="horizontal">
+
+		<TextView
+			android:layout_height="wrap_content"
+			android:layout_width="wrap_content"
+			android:text="上边距:"/>
+
+		<EditText
+			android:inputType="number"
+			android:layout_width="wrap_content"
+			android:ems="10"
+			android:layout_height="40dp"
+			android:id="@+id/up"/>
+
+	</LinearLayout>
+
+	<LinearLayout
+		android:layout_height="wrap_content"
+		android:layout_width="fill_parent"
+		android:orientation="horizontal">
+
+		<TextView
+			android:layout_height="wrap_content"
+			android:layout_width="wrap_content"
+			android:text="左边距:"/>
+
+		<EditText
+			android:inputType="number"
+			android:layout_width="wrap_content"
+			android:ems="10"
+			android:layout_height="40dp"
+			android:id="@+id/l"/>
+
+	</LinearLayout>
+
+	<LinearLayout
+		android:layout_height="wrap_content"
+		android:layout_width="fill_parent"
+		android:orientation="horizontal">
+
+		<TextView
+			android:layout_height="wrap_content"
+			android:layout_width="wrap_content"
+			android:text="上间距:"/>
+
+		<EditText
+			android:inputType="number"
+			android:layout_width="wrap_content"
+			android:ems="10"
+			android:layout_height="40dp"
+			android:id="@+id/jian_up"/>
+
+	</LinearLayout>
+
+	<LinearLayout
+		android:layout_height="wrap_content"
+		android:layout_width="fill_parent"
+		android:orientation="horizontal">
+
+		<TextView
+			android:layout_height="wrap_content"
+			android:layout_width="wrap_content"
+			android:text="左间距:"/>
+
+		<EditText
+			android:inputType="number"
+			android:layout_width="wrap_content"
+			android:ems="10"
+			android:layout_height="40dp"
+			android:id="@+id/jian_l"/>
+
+	</LinearLayout>
+
+	<LinearLayout
+		android:layout_height="wrap_content"
+		android:layout_width="fill_parent"
+		android:orientation="horizontal">
+
+		<TextView
+			android:layout_height="wrap_content"
+			android:layout_width="wrap_content"
+			android:text="清晰度:"/>
+
+		<EditText
+			android:inputType="number"
+			android:layout_width="wrap_content"
+			android:ems="10"
+			android:layout_height="40dp"
+			android:id="@+id/dpi"/>
+
+	</LinearLayout>
+
+	<LinearLayout
+		android:layout_height="wrap_content"
+		android:layout_width="fill_parent"
+		android:orientation="horizontal">
+
+		<TextView
+			android:layout_height="wrap_content"
+			android:layout_width="wrap_content"
+			android:text="缓存文件夹:"
+			android:id="@+id/huan_chun"/>
+
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="当前缓存:"
+			android:id="@+id/huan_chun_b"/>
+
+		<Button
+			android:layout_height="wrap_content"
+			android:layout_width="wrap_content"
+			android:text="清除图片缓存"
+			android:onClick="del"/>
 
 	</LinearLayout>
 
