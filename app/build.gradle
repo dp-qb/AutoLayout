@@ -1,24 +1,24 @@
 apply plugin: 'com.android.application'
-
 android {
-    compileSdkVersion 23
+    compileSdkVersion 24//设置编译时用的Android版本
     buildToolsVersion "21.1.0"
 
     defaultConfig {
         applicationId "com.pic"
-        minSdkVersion 21
-        targetSdkVersion 23
-        versionCode 1
-        versionName "1.0"
+        minSdkVersion 20//项目最低兼容的版本
+        targetSdkVersion 22//项目的目标版本
+        versionCode 1//版本号
+        versionName "1.0"//版本名称
     }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+    buildTypes {// 生产/测试环境配置
+        release {// 生产环境
+            minifyEnabled false//是否对代码进行混淆
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'//指定混淆的规则文件
         }
     }
 }
 
-dependencies {
+dependencies {//项目的依赖关系
     compile fileTree(dir: 'libs', include: ['*.jar'])
+
 }

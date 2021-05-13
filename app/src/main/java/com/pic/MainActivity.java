@@ -14,6 +14,8 @@ import java.util.*;
 import android.content.pm.*;
 import android.media.*;
 import org.w3c.dom.Text;
+import android.support.v4.content.FileProvider;
+import android.preference.*;
 
 public class MainActivity extends Activity 
 {
@@ -36,7 +38,7 @@ public class MainActivity extends Activity
         dialog.setCancelable(false);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-        数据持久化= getSharedPreferences("test",Activity.MODE_PRIVATE); //同样，在读取SharedPreferences数据前要实例化出一个SharedPreferences对象 
+        数据持久化 = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);;//实例化SharedPreferences对象（第一步）  //同样，在读取SharedPreferences数据前要实例化出一个SharedPreferences对象 
         打印包名=数据持久化.getString("打印包名", "epson.print");
         模板宽=Integer.valueOf(数据持久化.getString("模板宽","100"));
         模板高=Integer.valueOf(数据持久化.getString("模板高","150"));
@@ -45,7 +47,7 @@ public class MainActivity extends Activity
         上间距=Integer.valueOf(数据持久化.getString("上间距","2"));
         左间距=Integer.valueOf(数据持久化.getString("左间距","2"));
         清晰度=Integer.valueOf(数据持久化.getString("清晰度","50"));
-        SetActivity.clearAllCache(this);
+        //SetActivity.clearAllCache(this);//清除缓存
         Intent intent = getIntent();
         String action = intent.getAction();
         String type = intent.getType();
@@ -121,8 +123,26 @@ public class MainActivity extends Activity
     }
     void log(String debug){Toast.makeText(getApplicationContext(),debug,Toast.LENGTH_SHORT).show();}//浮动提示
     void debug(String s){txt=txt+"\n"+s;text.setText(txt);};
+
+	private File uri2File(Uri uri) {
+        String img_path;
+        String[] proj = {MediaStore.Images.Media.DATA};
+        Cursor actualimagecursor = managedQuery(uri, proj, null,
+												null, null);
+        if (actualimagecursor == null) {
+            img_path = uri.getPath();
+        } else {
+            int actual_image_column_index = actualimagecursor
+				.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            actualimagecursor.moveToFirst();
+            img_path = actualimagecursor
+				.getString(actual_image_column_index);
+        }
+        File file = new File(img_path);
+        return file;
+    }
     //Uri转地址
-    private static String uritodata(Context context, Uri uri) {
+    private String uritodata(Context context, Uri uri) {
         String filePath = null;
         if (DocumentsContract.isDocumentUri(context, uri)) {
             // 如果是document类型的 uri, 则通过document id来进行处理
@@ -178,24 +198,36 @@ public class MainActivity extends Activity
     }
     //分享
     private void initShareIntent(String type,File newimage) {
+		//type="com.fooview.android.fooview";
         boolean found = false;
         Intent share = new Intent(android.content.Intent.ACTION_SEND);
         share.setType("image/jpeg");
-        List<ResolveInfo> resInfo = getPackageManager().queryIntentActivities(share, 0);
+		Uri fileUri = null;
+		if (Build.VERSION.SDK_INT >= 24) {
+			//Toast.makeText(MainActivity.this,("当前安卓版本"+Build.VERSION.SDK_INT+"，使用新版分享。"), Toast.LENGTH_LONG).show();
+			fileUri = FileProvider.getUriForFile(this, "com.pic", newimage);
+		} else {
+			fileUri = Uri.fromFile(newimage);
+		}
+        List<ResolveInfo> resInfo = getPackageManager().queryIntentActivities(share, 0);//获取所有应用包名
         if (!resInfo.isEmpty()){
             for (ResolveInfo info : resInfo) {
-                if (info.activityInfo.packageName.toLowerCase().contains(type) ||
+				   if (info.activityInfo.packageName.toLowerCase().contains(type) ||
                     info.activityInfo.name.toLowerCase().contains(type) ) {
-                    share.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(newimage) ); // Optional, just if you wanna share an image.
+					share.putExtra(Intent.EXTRA_STREAM,fileUri);
                     share.setPackage(info.activityInfo.packageName);
                     found = true;
                     break;
                 }
             }
-            if (!found)
-                return;
-            startActivity(Intent.createChooser(share, "Select"));
+            if (found)
+			{
+				startActivity(Intent.createChooser(share, "Select"));//发送到打印机
+			}else{
+				Toast.makeText(this,("没有找到打印机驱动当前设置的包名："+打印包名), Toast.LENGTH_LONG).show();
+				}
         }
+		
     }
 //获取300dpi的缩略图降低运算压力
     public Bitmap getImageThumbnail(String imagePath, int width, int height) { 
@@ -223,13 +255,12 @@ public class MainActivity extends Activity
         // 重新读入图片，读取缩放后的bitmap，注意这次要把options.inJustDecodeBounds 设为 false 
         bitmap = BitmapFactory.decodeFile(imagePath, options); 
         // 利用ThumbnailUtils来创建缩略图，这里要指定要缩放哪个Bitmap对象 
-        bitmap = ThumbnailUtils.extractThumbnail(bitmap, width, height, 
-                                                 ThumbnailUtils.OPTIONS_RECYCLE_INPUT); 
+        bitmap = ThumbnailUtils.extractThumbnail(bitmap, width, height,ThumbnailUtils.OPTIONS_RECYCLE_INPUT); 
         return bitmap; 
     }
     
     //保存排好版的图片
-    public void saveImageToGallery(Bitmap bmp) {
+    public File saveImageToGallery(Bitmap bmp) {
         File dir=new File(this.getExternalCacheDir().getAbsolutePath());
         // 首先保存图片
         if (!dir.exists()) {
@@ -247,16 +278,14 @@ public class MainActivity extends Activity
         } catch (IOException io) { 
             io.printStackTrace(); 
         } 
-        initShareIntent(打印包名,file);//自动发送打印机
+		return file;
     }
-    /*
     @Override
     protected void onPause()//退出软件即关闭
     {
         super.onPause();
         System.exit(0);
     }
-    */
     /**
     *在新线程进行排版任务。
     **/
@@ -289,10 +318,13 @@ public class MainActivity extends Activity
                     canvas.drawBitmap(bm,L+(JIAN_L*i+bm.getWidth()*i),UP+(JIAN_UP*n+bm.getHeight()*n), null);
                 }
             }
-            canvas.save(Canvas.ALL_SAVE_FLAG);  
+            canvas.save();  
             canvas.restore();  
-            saveImageToGallery(bagimage);//保存并分享*/
+            File f= saveImageToGallery(bagimage);//把图片保存到文件
             dialog.dismiss();// 隐藏对话框
+			Looper.prepare();
+			initShareIntent(打印包名,f);//自动发送打印机
+			Looper.loop();
         }
     }    
 }

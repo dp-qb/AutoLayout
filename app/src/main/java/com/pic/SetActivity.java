@@ -6,79 +6,91 @@ import android.widget.*;
 import android.view.*;
 import java.io.File;
 import java.math.BigDecimal;
+import android.preference.*;
 
-public class SetActivity extends Activity
+public class SetActivity extends PreferenceActivity
 {
     SharedPreferences 数据持久化;
-    EditText 打印包名,模板宽,模板高,左边距,上边距,左间距,上间距,清晰度;
-    TextView 缓存大小,缓存路径;
-    void log(String str){Toast.makeText(this,str,Toast.LENGTH_LONG).show();}
+	PreferenceManager 当前界面;
     protected void onCreate(Bundle savedInstanceState) 
     {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.set); 
-        数据持久化= getSharedPreferences("test",Activity.MODE_PRIVATE); //实例化SharedPreferences对象（第一步） 
-        
-        打印包名=this.findViewById(R.id.bao);
-        模板宽=this.findViewById(R.id.ban_w);
-        模板高=this.findViewById(R.id.ban_h);
-        上边距=this.findViewById(R.id.up);
-        左边距= this.findViewById(R.id.l);
-        上间距=this.findViewById(R.id.jian_up);
-        左间距=this.findViewById(R.id.jian_l);
-        清晰度=this.findViewById(R.id.dpi);
-        缓存大小=this.findViewById(R.id.huan_chun_b);
-        缓存路径=this.findViewById(R.id.huan_chun);
-        
-        打印包名.setText(数据持久化.getString("打印包名", "epson.print"));
-        模板宽.setText(数据持久化.getString("模板宽","100"));
-        模板高.setText(数据持久化.getString("模板高","150"));
-        上边距.setText(数据持久化.getString("上边距","5"));
-        左边距.setText(数据持久化.getString("左边距","3"));
-        上间距.setText(数据持久化.getString("上间距","2"));
-        左间距.setText(数据持久化.getString("左间距","2"));
-        清晰度.setText(数据持久化.getString("清晰度","50"));
-        缓存路径.setText("缓存路径:"+this.getExternalCacheDir().getAbsolutePath());
-        try {
-            缓存大小.setText("    当前缓存大小:"+getTotalCacheSize(this));
-        } catch (Exception e) {}
+        addPreferencesFromResource(R.xml.setting_layout);
+		当前界面 = getPreferenceManager();
+        数据持久化 = getPreferenceScreen().getSharedPreferences();//实例化SharedPreferences对象（第一步） 
+		findPreference("打印包名").setSummary(数据持久化.getString("打印包名", "epson.print"));
+		findPreference("模板宽").setSummary(数据持久化.getString("模板宽", "100"));
+		findPreference("模板高").setSummary(数据持久化.getString("模板高", "150"));
+		findPreference("上边距").setSummary(数据持久化.getString("上边距", "5"));
+		findPreference("左边距").setSummary(数据持久化.getString("左边距", "3"));
+        findPreference("上间距").setSummary(数据持久化.getString("上间距", "2"));
+		findPreference("左间距").setSummary(数据持久化.getString("左间距", "2"));
+		findPreference("清晰度").setSummary(数据持久化.getString("清晰度", "50"));
+		当前界面.findPreference("打印包名").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener(){
+				@Override
+				public boolean onPreferenceChange(Preference 被点击的控件, Object objValue)
+				{
+					被点击的控件.setSummary(String.valueOf(objValue));
+					return true; // 保存更新值
+				}
+			});
+		当前界面.findPreference("模板宽").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener(){
+				@Override
+				public boolean onPreferenceChange(Preference 被点击的控件, Object objValue)
+				{
+					被点击的控件.setSummary(String.valueOf(objValue));
+					return true; // 保存更新值
+				}
+			});
+		当前界面.findPreference("模板高").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener(){
+				@Override
+				public boolean onPreferenceChange(Preference 被点击的控件, Object objValue)
+				{
+					被点击的控件.setSummary(String.valueOf(objValue));
+					return true; // 保存更新值
+				}
+			});
+		当前界面.findPreference("上边距").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener(){
+				@Override
+				public boolean onPreferenceChange(Preference 被点击的控件, Object objValue)
+				{
+					被点击的控件.setSummary(String.valueOf(objValue));
+					return true; // 保存更新值
+				}
+			});
+		当前界面.findPreference("左边距").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener(){
+				@Override
+				public boolean onPreferenceChange(Preference 被点击的控件, Object objValue)
+				{
+					被点击的控件.setSummary(String.valueOf(objValue));
+					return true; // 保存更新值
+				}
+			});
+		当前界面.findPreference("上间距").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener(){
+				@Override
+				public boolean onPreferenceChange(Preference 被点击的控件, Object objValue)
+				{
+					被点击的控件.setSummary(String.valueOf(objValue));
+					return true; // 保存更新值
+				}
+			});
+		当前界面.findPreference("左间距").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener(){
+				@Override
+				public boolean onPreferenceChange(Preference 被点击的控件, Object objValue)
+				{
+					被点击的控件.setSummary(String.valueOf(objValue));
+					return true; // 保存更新值
+				}
+			});
+		当前界面.findPreference("清晰度").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener(){
+				@Override
+				public boolean onPreferenceChange(Preference 被点击的控件, Object objValue)
+				{
+					被点击的控件.setSummary(String.valueOf(objValue));
+					return true; // 保存更新值
+				}
+			});
     }
-    public void set(View view)
-    {
-        SharedPreferences.Editor editor = 数据持久化.edit(); //实例化SharedPreferences.Editor对象（第二步）
-        editor.putString("打印包名", 打印包名.getText().toString()); //把输入框的值用putString的方法保存数据 
-        editor.putString("模板宽",模板宽.getText().toString()); //把输入框的值用putString的方法保存数据 
-        editor.putString("模板高",模板高.getText().toString()); //把输入框的值用putString的方法保存数据 
-        editor.putString("上边距",上边距.getText().toString()); //把输入框的值用putString的方法保存数据 
-        editor.putString("左边距",左边距.getText().toString()); //把输入框的值用putString的方法保存数据 
-        editor.putString("上间距",上间距.getText().toString()); //把输入框的值用putString的方法保存数据 
-        editor.putString("左间距",左间距.getText().toString()); //把输入框的值用putString的方法保存数据 
-        editor.putString("清晰度",清晰度.getText().toString()); //把输入框的值用putString的方法保存数据 
-        editor.commit(); //提交当前数据 
-        log("已提交");
-    }
-    public void get(View view)
-    {
-        log(
-        数据持久化.getString("打印包名", "epson.print")+"\n"+
-        数据持久化.getString("模板高","150")+"\n"+
-        数据持久化.getString("模板宽","100")+"\n"+
-        数据持久化.getString("上边距","5")+"\n"+
-        数据持久化.getString("左边距","3")+"\n"+
-        数据持久化.getString("上间距","2")+"\n"+
-        数据持久化.getString("左间距","2")+"\n"+
-        数据持久化.getString("清晰度","50")
-        );
-    }
-    public void del(View view)
-    {
-        clearAllCache(this);
-        try {
-            缓存大小.setText("    当前缓存大小:"+getTotalCacheSize(this));
-        } catch (Exception e) {}
-    }
-
-
     /**
      * 获取缓存大小
      * @param context
@@ -92,8 +104,6 @@ public class SetActivity extends Activity
         }
         return getFormatSize(cacheSize);
     }
-
-
     /**
      * 清除缓存
      * @param context
