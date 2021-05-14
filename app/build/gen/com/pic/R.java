@@ -18,7 +18,6 @@ public final class R {
         public static final int pic3=0x7f020004;
         public static final int pic4=0x7f020005;
         public static final int pic6=0x7f020006;
-        public static final int pic_ic=0x7f020007;
     }
     public static final class id {
         public static final int che=0x7f050001;
