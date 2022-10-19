@@ -1,0 +1,39 @@
+# view AndroidManifest.xml #generated:68
+-keep class android.support.v4.content.FileProvider { <init>(...); }
+
+# view AndroidManifest.xml #generated:20
+-keep class com.pic.MainActivity { <init>(...); }
+
+# view AndroidManifest.xml #generated:52
+-keep class com.pic.SetActivity { <init>(...); }
+
+# onClick res/layout/main.xml #generated:23
+-keepclassmembers class * { *** click_1(...); }
+
+# onClick res/layout/main.xml #generated:30
+-keepclassmembers class * { *** click_2(...); }
+
+# onClick res/layout/main.xml #generated:37
+-keepclassmembers class * { *** click_3(...); }
+
+# onClick res/layout/main.xml #generated:51
+-keepclassmembers class * { *** click_4(...); }
+
+# onClick res/layout/main.xml #generated:58
+-keepclassmembers class * { *** click_5(...); }
+
+# onClick res/layout/main.xml #generated:44
+-keepclassmembers class * { *** click_6(...); }
+
+# onClick res/layout/set.xml #generated:182
+-keepclassmembers class * { *** del(...); }
+
+# onClick res/layout/set.xml #generated:207
+-keepclassmembers class * { *** get(...); }
+
+# onClick res/layout/set.xml #generated:196
+-keepclassmembers class * { *** set(...); }
+
+# onClick res/layout/main.xml #generated:80
+-keepclassmembers class * { *** zhuan(...); }
+

@@ -17,7 +17,7 @@
 			<TextView
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:text="请给予存储权限"
+				android:text=""
 				android:id="@+id/text"/>
 
 			<Button
@@ -55,6 +55,12 @@
 				android:drawableLeft="@drawable/pic4"
 				android:onClick="click_4"/>
 
+			<Button
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="pdf测试按钮"
+				android:onClick="click_5"/>
+						
 		</LinearLayout>
 
 	</ScrollView>
@@ -74,7 +80,7 @@
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:drawableLeft="@drawable/but_90"
-			android:text="转90度"
+			android:text="已停用(转90度)"
 			android:onClick="zhuan"/>
 
 		<ImageView

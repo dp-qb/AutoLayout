@@ -17,37 +17,52 @@ import org.w3c.dom.Text;
 import android.support.v4.content.FileProvider;
 import android.preference.*;
 
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.*;
+
+import com.itextpdf.text.Image;
+
 public class MainActivity extends Activity 
 {
     String filePath;//传进来的地址
-    String txt;//运行信息
-    private ProgressDialog dialog;//努力排版中
+	String filePath90;
+    String txt="调试信息";//运行信息
     SharedPreferences 数据持久化;
-    ImageView image_che,image_ren,image_ren_erchun;
-    Bitmap che,ren,erchun;
+    ImageView image_che,image_ren;
+    Bitmap che,ren;
     String 打印包名;
-    int 清晰度,模板高,模板宽,左边距,上边距,左间距,上间距;
     TextView text;
     boolean 是否旋转=true;
+    /**
+     * 清除缓存
+     * @param context
+     */
+    public static void clearAllCache(Context context) {
+        deleteDir(context.getCacheDir());
+        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+            deleteDir(context.getExternalCacheDir());
+        }
+    }
+	private static boolean deleteDir(File dir) {
+        if (dir != null && dir.isDirectory()) {
+            String[] children = dir.list();
+            for (int i = 0; i < children.length; i++) {
+                boolean success = deleteDir(new File(dir, children[i]));
+                if (!success) {
+                    return false;
+                }
+            }
+        }
+        return dir.delete();
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) 
     {
-        dialog = new ProgressDialog(this);
-        dialog.setTitle("提示");
-        dialog.setMessage("正在排版，请稍后...");
-        dialog.setCancelable(false);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         数据持久化 = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);;//实例化SharedPreferences对象（第一步）  //同样，在读取SharedPreferences数据前要实例化出一个SharedPreferences对象 
         打印包名=数据持久化.getString("打印包名", "epson.print");
-        模板宽=Integer.valueOf(数据持久化.getString("模板宽","100"));
-        模板高=Integer.valueOf(数据持久化.getString("模板高","150"));
-        上边距=Integer.valueOf(数据持久化.getString("上边距","5"));
-        左边距=Integer.valueOf(数据持久化.getString("左边距","3"));
-        上间距=Integer.valueOf(数据持久化.getString("上间距","2"));
-        左间距=Integer.valueOf(数据持久化.getString("左间距","2"));
-        清晰度=Integer.valueOf(数据持久化.getString("清晰度","50"));
-        //SetActivity.clearAllCache(this);//清除缓存
+        clearAllCache(this);//清除缓存
         Intent intent = getIntent();
         String action = intent.getAction();
         String type = intent.getType();
@@ -60,10 +75,27 @@ public class MainActivity extends Activity
                     {
                         Uri imageUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
                         if (imageUri != null) {
-                            filePath= uritodata(this,imageUri);//Uri链接转换data链接
-                            File mfile=new File(filePath);//获取图片文件
+							filePath= uritodata(this,imageUri);//Uri链接转换data链接
+							File mfile=uri2File(imageUri);
+							//debug("接收到的图片链接"+filePath);
                             if (mfile.exists()) {
                                 zhuan(null);
+								Bitmap bitmap = BitmapFactory.decodeFile(filePath);
+								Matrix matrix = new Matrix();
+								matrix.postRotate(90);
+								Bitmap resizeBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+								File dir=new File(this.getExternalCacheDir().getAbsolutePath());
+								if (!dir.exists()) {dir.mkdir();}//如果文件夹不存在就先创建。
+								String fileName = System.currentTimeMillis() + ".jpeg";
+								File file = new File(dir, fileName);
+								OutputStream outputStream = null; //文件输出流
+								try {
+									outputStream = new FileOutputStream(file);
+									resizeBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream); //将图片压缩为JPEG格式写到文件输出流，100是最大的质量程度
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+								filePath90= file.toString();
                             }else{log("内存卡读取失败");}
                         }
                      }
@@ -72,48 +104,293 @@ public class MainActivity extends Activity
 	
     public void click_1(View view)
     {
-        paiban thread1 = new paiban(清晰度,模板高,模板宽,1,1,左边距,上边距,左间距,上间距,che);
-        thread1.start();
+        try {
+			Document document = new Document(PageSize.A4);
+			//PageSize.A4=595 x 842 	A4尺寸=210mm×297mm
+			File dir=new File(this.getExternalCacheDir().getAbsolutePath());
+			if (!dir.exists()) {dir.mkdir();}//如果文件夹不存在就先创建。
+			String fileName = System.currentTimeMillis() + ".pdf";
+			File file = new File(dir, fileName);
+			PdfWriter pdfWriter = PdfWriter.getInstance(document, new FileOutputStream(file));
+			document.open();//打开文档
+
+			Image img1 =c裁剪图片(pdfWriter,(60f/90f));
+			img1.setAbsolutePosition(10,842-170-10);//位置
+			img1.scaleAbsolute(255,170);//大小
+			document.add(img1);
+
+			document.close();
+			pdfWriter.close();
+			Intent share = new Intent(android.content.Intent.ACTION_SEND);
+			share.setType("application/pdf");
+			Uri fileUri = null;
+			if (Build.VERSION.SDK_INT >= 24) {fileUri = FileProvider.getUriForFile(this, "com.pic",file);}
+			else {fileUri = Uri.fromFile(file);}//;log("当前安卓版本"+Build.VERSION.SDK_INT+"，使用新版分享。");
+			share.putExtra(Intent.EXTRA_STREAM,fileUri);
+			share.setPackage(打印包名);
+			startActivity(Intent.createChooser(share, "Select"));//发送到打印机
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
     }
     public void click_2(View view)
     {
-        paiban thread2 = new paiban(清晰度,模板高,模板宽,2,1,左边距,上边距,左间距,上间距,che);
-        thread2.start();
+        try {
+			Document document = new Document(PageSize.A4);
+			//PageSize.A4=595 x 842 	A4尺寸=210mm×297mm
+			File dir=new File(this.getExternalCacheDir().getAbsolutePath());
+			if (!dir.exists()) {dir.mkdir();}//如果文件夹不存在就先创建。
+			String fileName = System.currentTimeMillis() + ".pdf";
+			File file = new File(dir, fileName);
+			PdfWriter pdfWriter = PdfWriter.getInstance(document, new FileOutputStream(file));
+			document.open();//打开文档
+
+			Image img1 =c裁剪图片(pdfWriter,(60f/90f));
+			img1.scaleAbsolute(255,170);//大小
+			img1.setAbsolutePosition(10,842-170-10);//位置
+			document.add(img1);
+
+			img1.setAbsolutePosition(10,842-170-10-170-10);//位置
+			document.add(img1);
+			
+			document.close();
+			pdfWriter.close();
+			Intent share = new Intent(android.content.Intent.ACTION_SEND);
+			share.setType("application/pdf");
+			Uri fileUri = null;
+			if (Build.VERSION.SDK_INT >= 24) {fileUri = FileProvider.getUriForFile(this, "com.pic",file);}
+			else {fileUri = Uri.fromFile(file);}//;log("当前安卓版本"+Build.VERSION.SDK_INT+"，使用新版分享。");
+			share.putExtra(Intent.EXTRA_STREAM,fileUri);
+			share.setPackage(打印包名);
+			startActivity(Intent.createChooser(share, "Select"));//发送到打印机
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
     }
     public void click_3(View view)
     {
-        paiban thread3 = new paiban(清晰度,模板高,模板宽,1,3,左边距,上边距,左间距,上间距,ren);
-        thread3.start();
+        try {
+			Document document = new Document(PageSize.A4);
+			//PageSize.A4=595 x 842 	A4尺寸=210mm×297mm
+			File dir=new File(this.getExternalCacheDir().getAbsolutePath());
+			if (!dir.exists()) {dir.mkdir();}//如果文件夹不存在就先创建。
+			String fileName = System.currentTimeMillis() + ".pdf";
+			File file = new File(dir, fileName);
+			PdfWriter pdfWriter = PdfWriter.getInstance(document, new FileOutputStream(file));
+			document.open();//打开文档
+
+			Image img1 =c裁剪图片(pdfWriter,(35f/25f));
+			img1.scaleAbsolute(71,99);//大小
+			img1.setAbsolutePosition(10,842-99-10);//位置
+			document.add(img1);
+
+			img1.setAbsolutePosition(10+71+10,842-99-10);//位置
+			document.add(img1);
+
+			img1.setAbsolutePosition(10+71+10+71+10,842-99-10);//位置
+			document.add(img1);
+			
+			document.close();
+			pdfWriter.close();
+			Intent share = new Intent(android.content.Intent.ACTION_SEND);
+			share.setType("application/pdf");
+			Uri fileUri = null;
+			if (Build.VERSION.SDK_INT >= 24) {fileUri = FileProvider.getUriForFile(this, "com.pic",file);}
+			else {fileUri = Uri.fromFile(file);}//;log("当前安卓版本"+Build.VERSION.SDK_INT+"，使用新版分享。");
+			share.putExtra(Intent.EXTRA_STREAM,fileUri);
+			share.setPackage(打印包名);
+			startActivity(Intent.createChooser(share, "Select"));//发送到打印机
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
     }
     public void click_6(View view)
     {
-        paiban thread6 = new paiban(清晰度,模板高,模板宽,2,3,左边距,上边距,左间距,上间距,ren);
-        thread6.start();
+        try {
+			Document document = new Document(PageSize.A4);
+			//PageSize.A4=595 x 842 	A4尺寸=210mm×297mm
+			File dir=new File(this.getExternalCacheDir().getAbsolutePath());
+			if (!dir.exists()) {dir.mkdir();}//如果文件夹不存在就先创建。
+			String fileName = System.currentTimeMillis() + ".pdf";
+			File file = new File(dir, fileName);
+			PdfWriter pdfWriter = PdfWriter.getInstance(document, new FileOutputStream(file));
+			document.open();//打开文档
+
+			Image img1 =c裁剪图片(pdfWriter,(35f/25f));
+			img1.scaleAbsolute(71,99);//大小
+			img1.setAbsolutePosition(10,842-99-10);//位置
+			document.add(img1);
+			img1.setAbsolutePosition(10+71+10,842-99-10);//位置
+			document.add(img1);
+			img1.setAbsolutePosition(10+71+10+71+10,842-99-10);//位置
+			document.add(img1);
+
+			img1.setAbsolutePosition(10,842-99-10-99-10);//位置
+			document.add(img1);
+			img1.setAbsolutePosition(10+71+10,842-99-10-99-10);//位置
+			document.add(img1);
+			img1.setAbsolutePosition(10+71+10+71+10,842-99-10-99-10);//位置
+			document.add(img1);
+			
+			document.close();
+			pdfWriter.close();
+			Intent share = new Intent(android.content.Intent.ACTION_SEND);
+			share.setType("application/pdf");
+			Uri fileUri = null;
+			if (Build.VERSION.SDK_INT >= 24) {fileUri = FileProvider.getUriForFile(this, "com.pic",file);}
+			else {fileUri = Uri.fromFile(file);}//;log("当前安卓版本"+Build.VERSION.SDK_INT+"，使用新版分享。");
+			share.putExtra(Intent.EXTRA_STREAM,fileUri);
+			share.setPackage(打印包名);
+			startActivity(Intent.createChooser(share, "Select"));//发送到打印机
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
     }
     public void click_4(View view)
     {
         
-        paiban thread4 = new paiban(清晰度,模板高,模板宽,2,2,左边距,上边距,左间距,上间距,erchun);
-        thread4.start();
+        try {
+			Document document = new Document(PageSize.A4);
+			//PageSize.A4=595 x 842 	A4尺寸=210mm×297mm
+			File dir=new File(this.getExternalCacheDir().getAbsolutePath());
+			if (!dir.exists()) {dir.mkdir();}//如果文件夹不存在就先创建。
+			String fileName = System.currentTimeMillis() + ".pdf";
+			File file = new File(dir, fileName);
+			PdfWriter pdfWriter = PdfWriter.getInstance(document, new FileOutputStream(file));
+			document.open();//打开文档
+
+			Image img1 =c裁剪图片(pdfWriter,(45f/35f));
+			img1.scaleAbsolute(99,127);//大小
+			img1.setAbsolutePosition(10,842-127-10);//位置
+			document.add(img1);
+			img1.setAbsolutePosition(10+99+10,842-127-10);//位置
+			document.add(img1);
+
+			img1.setAbsolutePosition(10,842-127-10-127-10);//位置
+			document.add(img1);
+			img1.setAbsolutePosition(10+99+10,842-127-10-127-10);//位置
+			document.add(img1);
+
+			document.close();
+			pdfWriter.close();
+			Intent share = new Intent(android.content.Intent.ACTION_SEND);
+			share.setType("application/pdf");
+			Uri fileUri = null;
+			if (Build.VERSION.SDK_INT >= 24) {fileUri = FileProvider.getUriForFile(this, "com.pic",file);}
+			else {fileUri = Uri.fromFile(file);}//;log("当前安卓版本"+Build.VERSION.SDK_INT+"，使用新版分享。");
+			share.putExtra(Intent.EXTRA_STREAM,fileUri);
+			share.setPackage(打印包名);
+			startActivity(Intent.createChooser(share, "Select"));//发送到打印机
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
     }
+			public void click_5(View view)
+    {
+				try {
+					Document document = new Document(PageSize.A4);
+					//PageSize.A4=595 x 842 	A4尺寸=210mm×297mm
+					File dir=new File(this.getExternalCacheDir().getAbsolutePath());
+					if (!dir.exists()) {dir.mkdir();}//如果文件夹不存在就先创建。
+					String fileName = System.currentTimeMillis() + ".pdf";
+					File file = new File(dir, fileName);
+					PdfWriter pdfWriter = PdfWriter.getInstance(document, new FileOutputStream(file));
+					document.open();//打开文档
+					
+					Image img1 =c裁剪图片(pdfWriter,(60f/90f));
+					img1.scaleAbsolute(255,170);//大小
+					img1.setAbsolutePosition(10,842-170-10);//位置
+					document.add(img1);
+					
+					img1.setAbsolutePosition(10+255+10,842-170-10);//位置
+					document.add(img1);
+					
+					document.close();
+					pdfWriter.close();
+					Intent share = new Intent(android.content.Intent.ACTION_SEND);
+					share.setType("application/pdf");
+					Uri fileUri = null;
+					if (Build.VERSION.SDK_INT >= 24) {fileUri = FileProvider.getUriForFile(this, "com.pic",file);}
+					else {fileUri = Uri.fromFile(file);}//;log("当前安卓版本"+Build.VERSION.SDK_INT+"，使用新版分享。");
+					share.putExtra(Intent.EXTRA_STREAM,fileUri);
+					share.setPackage(打印包名);
+					startActivity(Intent.createChooser(share, "Select"));//发送到打印机
+				} catch (Exception e) {
+				e.printStackTrace();
+				}
+				
+    }
+	
+	public Image c裁剪图片(PdfWriter writer, float h_w) throws DocumentException, BadElementException, IOException {
+		String image_filePath=filePath;
+		if(是否旋转==true){image_filePath=filePath90;}
+		Image image=Image.getInstance(image_filePath);
+		float width = image.getScaledWidth();
+		float height = image.getScaledHeight();
+		PdfTemplate template = null;
+		if((height/h_w)>width){
+			template = writer.getDirectContent().createTemplate(
+				width,
+				width*h_w);
+			template.addImage(image, width, 0, 0, height, 
+							  0, -(height - width*h_w)/2);
+		}else{
+			template = writer.getDirectContent().createTemplate(
+				height/h_w,
+				height);
+			template.addImage(image, width, 0, 0, height, 
+							  -(width-height/h_w)/2,0);
+		}
+		return Image.getInstance(template);
+	}
+
+//获取300dpi的缩略图降低运算压力
+    public Bitmap getImageThumbnail(String imagePath, int width, int height) { 
+        Bitmap bitmap = null; 
+        BitmapFactory.Options options = new BitmapFactory.Options(); 
+        options.inJustDecodeBounds = true; 
+        // 获取这个图片的宽和高，注意此处的bitmap为null 
+        bitmap = BitmapFactory.decodeFile(imagePath, options); 
+        options.inJustDecodeBounds = false; // 设为 false 
+        // 计算缩放比 
+        int h = options.outHeight; 
+        int w = options.outWidth; 
+        int beWidth = w / width; 
+        int beHeight = h / height; 
+        int be = 1; 
+        if (beWidth < beHeight) { 
+            be = beWidth; 
+        } else { 
+            be = beHeight; 
+        } 
+        if (be <= 0) { 
+            be = 1; 
+        } 
+        options.inSampleSize = be; 
+        // 重新读入图片，读取缩放后的bitmap，注意这次要把options.inJustDecodeBounds 设为 false 
+        bitmap = BitmapFactory.decodeFile(imagePath, options); 
+        // 利用ThumbnailUtils来创建缩略图，这里要指定要缩放哪个Bitmap对象 
+        bitmap = ThumbnailUtils.extractThumbnail(bitmap, width, height,ThumbnailUtils.OPTIONS_RECYCLE_INPUT); 
+        return bitmap; 
+    }
+    
     public void zhuan(View view) 
     {
         if(是否旋转==false)
         {
-            che=getImageThumbnail(filePath,60*清晰度,90*清晰度);
-            ren=getImageThumbnail(filePath,35*清晰度,25*清晰度);
-            erchun=getImageThumbnail(filePath,45*清晰度,35*清晰度);
+            che=getImageThumbnail(filePath,600,900);
+            ren=getImageThumbnail(filePath,350,250);
             image_che.setImageBitmap(rotatePicture(che,90));
             image_ren.setImageBitmap(rotatePicture(ren,90));
+			是否旋转=true;
         }else
         {
-            che=getImageThumbnail(filePath,90*清晰度,60*清晰度);
-            ren=getImageThumbnail(filePath,25*清晰度,35*清晰度);
-            erchun=getImageThumbnail(filePath,35*清晰度,45*清晰度);
+            che=getImageThumbnail(filePath,900,600);
+            ren=getImageThumbnail(filePath,250,350);
             image_che.setImageBitmap(che);
             image_ren.setImageBitmap(ren);
+			是否旋转=false;
         }
-        是否旋转=!是否旋转;
     }
     public Bitmap rotatePicture(final Bitmap bitmap, final int degree) {
         Matrix matrix = new Matrix();
@@ -196,136 +473,11 @@ public class MainActivity extends Activity
     private static boolean isDownloadsDocument(Uri uri) {
         return "com.android.providers.downloads.documents".equals(uri.getAuthority());
     }
-    //分享
-    private void initShareIntent(String type,File newimage) {
-		//type="com.fooview.android.fooview";
-        boolean found = false;
-        Intent share = new Intent(android.content.Intent.ACTION_SEND);
-        share.setType("image/jpeg");
-		Uri fileUri = null;
-		if (Build.VERSION.SDK_INT >= 24) {
-			//Toast.makeText(MainActivity.this,("当前安卓版本"+Build.VERSION.SDK_INT+"，使用新版分享。"), Toast.LENGTH_LONG).show();
-			fileUri = FileProvider.getUriForFile(this, "com.pic", newimage);
-		} else {
-			fileUri = Uri.fromFile(newimage);
-		}
-        List<ResolveInfo> resInfo = getPackageManager().queryIntentActivities(share, 0);//获取所有应用包名
-        if (!resInfo.isEmpty()){
-            for (ResolveInfo info : resInfo) {
-				   if (info.activityInfo.packageName.toLowerCase().contains(type) ||
-                    info.activityInfo.name.toLowerCase().contains(type) ) {
-					share.putExtra(Intent.EXTRA_STREAM,fileUri);
-                    share.setPackage(info.activityInfo.packageName);
-                    found = true;
-                    break;
-                }
-            }
-            if (found)
-			{
-				startActivity(Intent.createChooser(share, "Select"));//发送到打印机
-			}else{
-				Toast.makeText(this,("没有找到打印机驱动当前设置的包名："+打印包名), Toast.LENGTH_LONG).show();
-				}
-        }
-		
-    }
-//获取300dpi的缩略图降低运算压力
-    public Bitmap getImageThumbnail(String imagePath, int width, int height) { 
-        Bitmap bitmap = null; 
-        BitmapFactory.Options options = new BitmapFactory.Options(); 
-        options.inJustDecodeBounds = true; 
-        // 获取这个图片的宽和高，注意此处的bitmap为null 
-        bitmap = BitmapFactory.decodeFile(imagePath, options); 
-        options.inJustDecodeBounds = false; // 设为 false 
-        // 计算缩放比 
-        int h = options.outHeight; 
-        int w = options.outWidth; 
-        int beWidth = w / width; 
-        int beHeight = h / height; 
-        int be = 1; 
-        if (beWidth < beHeight) { 
-            be = beWidth; 
-        } else { 
-            be = beHeight; 
-        } 
-        if (be <= 0) { 
-            be = 1; 
-        } 
-        options.inSampleSize = be; 
-        // 重新读入图片，读取缩放后的bitmap，注意这次要把options.inJustDecodeBounds 设为 false 
-        bitmap = BitmapFactory.decodeFile(imagePath, options); 
-        // 利用ThumbnailUtils来创建缩略图，这里要指定要缩放哪个Bitmap对象 
-        bitmap = ThumbnailUtils.extractThumbnail(bitmap, width, height,ThumbnailUtils.OPTIONS_RECYCLE_INPUT); 
-        return bitmap; 
-    }
-    
-    //保存排好版的图片
-    public File saveImageToGallery(Bitmap bmp) {
-        File dir=new File(this.getExternalCacheDir().getAbsolutePath());
-        // 首先保存图片
-        if (!dir.exists()) {
-            dir.mkdir();
-        }
-        String fileName = System.currentTimeMillis() + ".jpg";
-        File file = new File(dir, fileName);
-        // 创建一个位于SD卡上的文件 
-        FileOutputStream fileOutStream=null; 
-        try { 
-            fileOutStream=new FileOutputStream(file); 
-            //把位图输出到指定的文件中 
-            bmp.compress(Bitmap.CompressFormat.PNG, 100, fileOutStream); 
-            fileOutStream.close(); 
-        } catch (IOException io) { 
-            io.printStackTrace(); 
-        } 
-		return file;
-    }
     @Override
     protected void onPause()//退出软件即关闭
     {
         super.onPause();
         System.exit(0);
-    }
-    /**
-    *在新线程进行排版任务。
-    **/
-    class paiban extends Thread
-    {
-        int BAN_H,BAN_W,X,Y,L,UP,JIAN_L,JIAN_UP;
-        Bitmap bm;
-        paiban(int dpi,int 版高,int 版宽,int 行数,int 列数,int 左边距,int 上边距,int 左间距,int 上间距,Bitmap 图片)
-        {
-            dialog.show();
-            BAN_H=版高*dpi;
-            BAN_W=版宽*dpi;
-            X=列数;
-            Y=行数;
-            L=左边距*dpi;
-            UP=上边距*dpi;
-            JIAN_L=左间距*dpi;
-            JIAN_UP=上间距*dpi;
-            bm=图片;
-        }
-        @Override
-        public void run() 
-        {
-            Bitmap bagimage=Bitmap.createBitmap(BAN_W,BAN_H,Bitmap.Config.ARGB_8888);
-            Canvas canvas = new Canvas(bagimage);
-            for(int i=0;i<X;i++)
-            {
-                for(int n=0;n<Y;n++)
-                {
-                    canvas.drawBitmap(bm,L+(JIAN_L*i+bm.getWidth()*i),UP+(JIAN_UP*n+bm.getHeight()*n), null);
-                }
-            }
-            canvas.save();  
-            canvas.restore();  
-            File f= saveImageToGallery(bagimage);//把图片保存到文件
-            dialog.dismiss();// 隐藏对话框
-			Looper.prepare();
-			initShareIntent(打印包名,f);//自动发送打印机
-			Looper.loop();
-        }
     }    
 }
 

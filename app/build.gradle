@@ -1,14 +1,14 @@
 apply plugin: 'com.android.application'
 android {
-    compileSdkVersion 24//设置编译时用的Android版本
+    compileSdkVersion 30//设置编译时用的Android版本
     buildToolsVersion "21.1.0"
 
     defaultConfig {
         applicationId "com.pic"
-        minSdkVersion 20//项目最低兼容的版本
-        targetSdkVersion 22//项目的目标版本
-        versionCode 1//版本号
-        versionName "1.0"//版本名称
+        minSdkVersion 24//项目最低兼容的版本
+        targetSdkVersion 33//项目的目标版本
+        versionCode 2//版本号
+        versionName "1.2.3"//版本名称
     }
     buildTypes {// 生产/测试环境配置
         release {// 生产环境

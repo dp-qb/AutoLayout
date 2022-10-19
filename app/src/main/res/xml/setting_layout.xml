@@ -2,76 +2,12 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     android:key="video_param"
     android:title="这是一个设置界面，如果打印没问题请直接将图片分享至该软件。">
-	<!--CheckBoxPreference
-        android:defaultValue="false"
-        android:key="自动清缓存"
-        android:title="自动清缓存"
-		android:summaryOff="每次启动自动清除缓存。"
-        android:summaryOn="存储空间不够时清理缓存。"
-	/-->
 	<EditTextPreference
 		android:title="打印包名"
 		android:dialogTitle="请输入打印软件包名"
 		android:key="打印包名"
 		android:summary="请输入打印软件包名"  
     />
-	<EditTextPreference
-		android:title="模板宽"
-		android:dialogTitle="模板的横向长度(毫米)"
-		android:key="模板宽"
-		android:summary="请输入数字"  
-		android:digits="0123456789"   
-		android:inputType="number"
-    />
-	<EditTextPreference
-		android:title="模板高"
-		android:dialogTitle="模板的纵向长度(毫米)"
-		android:key="模板高"
-		android:summary="请输入数字"  
-		android:digits="0123456789"   
-		android:inputType="number"
-    />
-	<EditTextPreference
-		android:title="上边距"
-		android:dialogTitle="上边距"
-		android:key="上边距"
-		android:summary="请输入数字"  
-		android:digits="0123456789"   
-		android:inputType="number"
-    />
-	<EditTextPreference
-		android:title="左边距"
-		android:dialogTitle="左边距"
-		android:key="左边距"
-		android:summary="请输入数字"  
-		android:digits="0123456789"   
-		android:inputType="number"
-    />
-	<EditTextPreference
-		android:title="上间距"
-		android:dialogTitle="上间距"
-		android:key="上间距"
-		android:summary="请输入数字"  
-		android:digits="0123456789"   
-		android:inputType="number"
-    />
-	<EditTextPreference
-		android:title="左间距"
-		android:dialogTitle="左间距"
-		android:key="左间距"
-		android:summary="请输入数字"  
-		android:digits="0123456789"   
-		android:inputType="number"
-    />
-	<EditTextPreference
-		android:title="清晰度"
-		android:dialogTitle="一毫米有几像素"
-		android:key="清晰度"
-		android:summary="请输入数字"  
-		android:digits="0123456789"   
-		android:inputType="number"
-    />
-
 	<Preference
 		android:title="帮助"
 		android:key="key_help">
